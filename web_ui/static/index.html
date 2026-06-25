@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>小鹅通本地工作台</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">XE</div>
+        <div>
+          <div class="brand-title">课程归档工作台</div>
+          <div class="brand-subtitle">本地下载 · 本地转写</div>
+        </div>
+      </div>
+      <nav>
+        <a class="nav-item active" href="#download">下载视频</a>
+        <a class="nav-item" href="#transcribe">本地转写</a>
+        <a class="nav-item" href="#library">文件库</a>
+      </nav>
+      <div class="system-card">
+        <div class="system-row"><span>浏览器</span><strong id="browserLabel">检测中</strong></div>
+        <div class="system-row"><span>ffmpeg</span><strong id="ffmpegLabel">检测中</strong></div>
+        <div class="system-row"><span>GPU</span><strong id="gpuLabel">检测中</strong></div>
+        <div class="system-row"><span>捕获状态</span><strong id="captureStatus">未启动</strong></div>
+      </div>
+    </aside>
+
+    <main class="app">
+      <header class="topbar">
+        <div>
+          <h1>小鹅通视频下载与文字稿</h1>
+          <p>登录你已购买课程的账号，播放视频后捕获媒体地址，再下载并本地转写。</p>
+        </div>
+        <button class="secondary" id="refreshBtn">刷新</button>
+      </header>
+
+      <section class="grid">
+        <section class="panel capture-panel" id="download">
+          <div class="panel-head">
+            <div>
+              <h2>Edge 捕获</h2>
+              <p>启动 Edge 后，在真实页面登录、进入课节并播放。</p>
+            </div>
+            <div class="actions">
+              <button id="startCaptureBtn">启动捕获</button>
+              <button class="secondary" id="stopCaptureBtn">停止</button>
+            </div>
+          </div>
+          <label class="field">
+            <span>课程或课节链接</span>
+            <input id="courseUrl" placeholder="留空则打开小鹅通登录页，也可粘贴具体课节 URL" />
+          </label>
+
+          <div class="panel-head compact">
+            <div>
+              <h3>已捕获媒体</h3>
+              <p>播放后通常会出现 m3u8 或 mp4。</p>
+            </div>
+            <button class="ghost" id="clearCandidatesBtn">清空列表</button>
+          </div>
+          <div class="table" id="candidateList"></div>
+        </section>
+
+        <section class="panel transcribe-panel" id="transcribe">
+          <div class="panel-head">
+            <div>
+              <h2>本地转写</h2>
+              <p>默认读取 downloads 文件夹，只输出纯文本 txt。</p>
+            </div>
+            <button id="startTranscribeBtn">开始转写</button>
+          </div>
+          <div class="notice" id="gpuNotice" hidden></div>
+          <div class="form-grid">
+            <label class="field">
+              <span>输入文件或文件夹</span>
+              <input id="transcribePath" placeholder="留空使用 downloads 文件夹" />
+            </label>
+            <label class="field">
+              <span>模型</span>
+              <select id="modelName">
+                <option value="medium" selected>medium</option>
+                <option value="small">small</option>
+                <option value="large-v3">large-v3</option>
+                <option value="tiny">tiny</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>语言</span>
+              <select id="language">
+                <option value="zh" selected>zh 中文</option>
+                <option value="">自动识别</option>
+                <option value="en">en 英文</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>设备</span>
+              <select id="device">
+                <option value="auto" selected>自动</option>
+                <option value="cuda">GPU</option>
+                <option value="cpu">CPU</option>
+              </select>
+            </label>
+            <label class="check">
+              <input type="checkbox" id="forceTranscribe" />
+              <span>覆盖已有文字稿</span>
+            </label>
+          </div>
+
+          <div class="panel-head compact">
+            <div>
+              <h3>任务队列</h3>
+              <p>下载和转写任务都会显示在这里。</p>
+            </div>
+            <button class="ghost" id="clearJobsBtn">清空已结束</button>
+          </div>
+          <div class="job-list" id="jobList"></div>
+        </section>
+      </section>
+
+      <section class="panel library-panel" id="library">
+        <div class="library-col">
+          <div class="panel-head compact">
+            <div>
+              <h2>视频文件</h2>
+              <p>默认 downloads 文件夹。</p>
+            </div>
+            <button class="secondary" id="openDownloadsBtn">打开文件夹</button>
+          </div>
+          <div class="file-list" id="downloadList"></div>
+        </div>
+        <div class="library-col">
+          <div class="panel-head compact">
+            <div>
+              <h2>文字稿</h2>
+              <p>默认 transcripts 文件夹，只显示 txt。</p>
+            </div>
+            <button class="secondary" id="openTranscriptsBtn">打开文件夹</button>
+          </div>
+          <div class="file-list" id="transcriptList"></div>
+        </div>
+      </section>
+
+      <section class="panel log-panel">
+        <div class="panel-head compact">
+          <div>
+            <h2>运行日志</h2>
+            <p>捕获、下载、模型下载和转写进度。</p>
+          </div>
+          <button class="ghost" id="clearLogsBtn">清空日志</button>
+        </div>
+        <pre id="logBox"></pre>
+      </section>
+
+      <section class="panel credit-panel">
+        <p>制作人林祭Linki。</p>
+        <p>关注《贝城奠基者》谢谢喵。</p>
+        <p>秉持互联网开源精神，该程序禁止用于商业途径，但是欢迎免费分享传播。</p>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

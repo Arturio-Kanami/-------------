@@ -1,0 +1,11 @@
+.xiaoe_browser_profile/
+downloads/
+transcripts/
+models/
+release/
+__pycache__/
+*.pyc
+*.pyo
+*.zip
+*.log
+.DS_Store
